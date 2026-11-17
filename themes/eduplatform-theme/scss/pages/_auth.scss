@@ -1,0 +1,262 @@
+
+@use '../abstracts/variables' as *;
+
+// ==========================================
+// AUTH PAGE
+// ==========================================
+
+.auth-card-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100vh;
+    padding: $space-6;
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(91, 85, 217, 0.12),
+            transparent 35%
+        ),
+        $background;
+}
+
+// ==========================================
+// AUTH CARD
+// ==========================================
+
+.auth-card {
+    width: 100%;
+    max-width: 460px;
+    padding: 48px;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: $radius-lg;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+}
+
+// ==========================================
+// BRAND
+// ==========================================
+
+.auth-brand {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: $space-8;
+    color: $primary;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.7px;
+    text-decoration: none;
+    transition: color $transition;
+
+    &:hover {
+        color: $primary-dark;
+    }
+}
+
+// ==========================================
+// TITLE
+// ==========================================
+
+.auth-title {
+    margin: 0 0 $space-2;
+    color: $text-primary;
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.auth-sub {
+    margin: 0 0 $space-8;
+    color: $text-secondary;
+    font-size: $font-size-sm;
+    line-height: 1.7;
+}
+
+// ==========================================
+// ERROR MESSAGE
+// ==========================================
+
+.auth-error {
+    margin: 0 0 $space-5;
+    padding: $space-3 $space-4;
+    color: $danger;
+    background: rgba(220, 38, 38, 0.07);
+    border: 1px solid rgba(220, 38, 38, 0.18);
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    line-height: 1.5;
+}
+
+// ==========================================
+// FORM
+// ==========================================
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+}
+
+.auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    margin: 0 0 $space-4;
+
+    > label {
+        color: $text-primary;
+        font-size: $font-size-sm;
+        font-weight: 600;
+    }
+}
+
+// ==========================================
+// INPUTS
+// ==========================================
+
+.auth-input {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 $space-4;
+    color: $text-primary;
+    background: #fff;
+    border: 1px solid $border;
+    border-radius: $radius-md;
+    outline: none;
+    font-size: $font-size-sm;
+    transition: border-color $transition, box-shadow $transition;
+
+    &::placeholder {
+        color: #a0a8b7;
+    }
+
+    &:hover {
+        border-color: #c8cce0;
+    }
+
+    &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 3px rgba(91, 85, 217, 0.12);
+    }
+}
+
+// ==========================================
+// REMEMBER ME
+// ==========================================
+
+.auth-field--remember {
+    flex-direction: row;
+    align-items: center;
+    margin: 0 0 $space-5;
+
+    label {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-2;
+        color: $text-secondary;
+        font-size: $font-size-sm;
+        font-weight: 400;
+        cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        accent-color: $primary;
+        cursor: pointer;
+    }
+}
+
+// ==========================================
+// SUBMIT BUTTON
+// ==========================================
+
+.auth-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 50px;
+    margin-top: $space-2;
+    padding: $space-3 $space-5;
+    color: #fff;
+    background: $primary;
+    border: 0;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background $transition, transform $transition, box-shadow $transition;
+
+    &:hover {
+        background: $primary-dark;
+        box-shadow: 0 6px 16px rgba(91, 85, 217, 0.2);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+
+    &:focus-visible {
+        outline: 3px solid rgba(91, 85, 217, 0.3);
+        outline-offset: 3px;
+    }
+}
+
+// ==========================================
+// REGISTER LINK
+// ==========================================
+
+.auth-switch {
+    margin: $space-6 0 0;
+    color: $text-secondary;
+    font-size: $font-size-sm;
+    text-align: center;
+
+    a {
+        margin-left: 4px;
+        color: $primary;
+        font-weight: 700;
+        text-decoration: none;
+        transition: color $transition;
+
+        &:hover {
+            color: $primary-dark;
+            text-decoration: underline;
+        }
+    }
+}
+
+// ==========================================
+// RESPONSIVE
+// ==========================================
+
+@media (max-width: 480px) {
+    .auth-card-wrap {
+        padding: $space-4;
+    }
+
+    .auth-card {
+        padding: $space-6;
+        border-radius: $radius-md;
+    }
+
+    .auth-brand {
+        margin-bottom: $space-6;
+        font-size: 22px;
+    }
+
+    .auth-title {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 360px) {
+    .auth-card {
+        padding: $space-5;
+    }
+}

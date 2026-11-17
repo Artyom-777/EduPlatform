@@ -1,0 +1,140 @@
+@use '../abstracts/variables' as *;
+
+.dashboard-shell {
+    display: flex;
+    min-height: 100vh;
+    background: $background;
+
+    a {
+        text-decoration: none;
+    }
+}
+
+// Keep the same layout under the WordPress toolbar so the shell
+// matches the visible screen instead of overflowing it.
+@media screen and (min-width: 783px) {
+    .admin-bar {
+        .dashboard-shell {
+            min-height: calc(100vh - 32px);
+        }
+
+        .dashboard-sidebar {
+            top: 32px;
+            height: calc(100vh - 32px);
+        }
+    }
+}
+
+@media screen and (max-width: 782px) {
+    .admin-bar {
+        .dashboard-shell {
+            min-height: calc(100vh - 46px);
+        }
+    }
+}
+
+.dashboard-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    min-width: 0;
+}
+
+.dashboard-content {
+    flex: 1;
+    width: 100%;
+    max-width: $container-width;
+
+    margin: 0 auto;
+    padding: $space-8;
+}
+
+@media (max-width: 768px) {
+    .dashboard-shell {
+        flex-direction: column;
+    }
+
+    .dashboard-content {
+        padding: $space-4;
+    }
+}
+
+.dashboard-course-card-dates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.dashboard-course-card-date {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 10px;
+        bottom: 10px;
+        width: 3px;
+        border-radius: 4px;
+        background: #6ff163;
+        transition: background 0.25s ease;
+    }
+
+    span {
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    strong {
+        color: #1e293b;
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    &:first-child {
+        background: rgba(212, 255, 212, 0.473);
+
+    // Start Date hover
+    &:hover {
+        background: rgba(212, 255, 212, 0.726);
+        border-color: #86efac;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.10);
+        }
+    }
+
+    // End Date hover
+    &:last-child {
+        background: rgba(255, 212, 212, 0.473);
+        &::before {
+            background: #b91010;
+        }
+
+        &:hover {
+            background: rgba(255, 212, 212, 0.726);
+            border-color: #fca5a5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.10);
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-course-card-dates {
+        grid-template-columns: 1fr;
+    }
+}
