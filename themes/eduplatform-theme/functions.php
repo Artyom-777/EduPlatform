@@ -965,12 +965,6 @@ function eduplatform_dashboard_nav_items() {
             'icon'   => 'courses',
             'active' => eduplatform_dashboard_is_courses_route(),
         ),
-        array(
-            'label'  => __( 'Exam', 'eduplatform' ),
-            'url'    => $contact_url,
-            'icon'   => 'exam',
-            'active' => false,
-        ),
     );
 }
 
