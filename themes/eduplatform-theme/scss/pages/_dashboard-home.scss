@@ -121,9 +121,25 @@
 // ==========================================
 
 .dashboard-active-courses {
+    position: relative;
+    isolation: isolate;
     width: 100%;
     margin-top: $space-10;
     padding-bottom: $space-8;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: -$space-4;
+        background:
+            radial-gradient(circle at 95% 0%, rgba($primary, 0.12), transparent 32%),
+            linear-gradient(135deg, rgba($primary, 0.055), rgba($surface, 0.72));
+        border: 1px solid rgba($primary, 0.13);
+        border-radius: 22px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.045);
+        pointer-events: none;
+        z-index: -1;
+    }
 }
 
 .dashboard-active-courses-head {
@@ -134,11 +150,24 @@
     margin-bottom: $space-5;
 
     h2 {
+        position: relative;
         margin: 0 0 $space-2;
+        padding-left: $space-4;
         color: $text-primary;
         font-size: $font-size-lg;
         font-weight: 700;
         line-height: 1.3;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            bottom: 2px;
+            left: 0;
+            width: 4px;
+            background: linear-gradient($primary, $primary-dark);
+            border-radius: 4px;
+        }
     }
 
     p {
@@ -155,9 +184,11 @@
     justify-content: center;
     flex-shrink: 0;
     padding: 7px 13px;
-    color: $primary;
-    background: rgba(91, 85, 217, 0.08);
+    color: $surface;
+    background: linear-gradient(135deg, $primary, $primary-dark);
+    border: 1px solid rgba($primary-dark, 0.18);
     border-radius: 20px;
+    box-shadow: 0 6px 14px rgba($primary, 0.2);
     font-size: $font-size-xs;
     font-weight: 700;
 }
@@ -295,12 +326,76 @@
     }
 }
 
+// Active Courses only: compact three-column layout.
+.dashboard-active-courses > .dashboard-active-courses-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-4;
+}
+
+.dashboard-active-courses > .dashboard-active-courses-list .dashboard-active-course {
+    width: 100%;
+    height: 100%;
+}
+
+.dashboard-active-courses > .dashboard-active-courses-list .dashboard-active-course-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 1;
+}
+
+.dashboard-active-courses > .dashboard-active-courses-list .dashboard-active-course-body {
+    flex: 1;
+    gap: $space-2;
+    padding: $space-3;
+}
+
+.dashboard-active-courses > .dashboard-active-courses-list .dashboard-active-course-name {
+    min-height: 39px;
+    font-size: $font-size-sm;
+}
+
+.dashboard-active-courses > .dashboard-active-courses-list .dashboard-active-course-instructor {
+    font-size: 13px;
+
+    span {
+        margin-bottom: 2px;
+        font-size: 10px;
+    }
+}
+
+.dashboard-active-courses > .dashboard-active-courses-list .dashboard-active-course-meta {
+    gap: 6px;
+    margin-top: auto;
+
+    div {
+        gap: 2px;
+        min-width: 0;
+        padding: $space-2;
+    }
+
+    dt {
+        font-size: 10px;
+    }
+
+    dd {
+        max-width: 100%;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+}
+
 // ==========================================
 // RESPONSIVE
 // ==========================================
 
 @media (max-width: 1200px) {
     .dashboard-courses-section .dashboard-courses-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1024px) {
+    .dashboard-active-courses > .dashboard-active-courses-list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
@@ -324,6 +419,10 @@
     }
 
     .dashboard-active-courses-list {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-active-courses > .dashboard-active-courses-list {
         grid-template-columns: 1fr;
     }
 

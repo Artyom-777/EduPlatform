@@ -103,6 +103,95 @@ function edu_platform_enroll_user( $user_id, $course_id ) {
     return false !== $inserted;
 }
 
+/**
+ * Remove a user's enrollment record for a course.
+ *
+ * @param int $user_id
+ * @param int $course_id
+ * @return bool
+ */
+function edu_platform_unenroll_user( $user_id, $course_id ) {
+
+    global $wpdb;
+
+    $user_id   = (int) $user_id;
+    $course_id = (int) $course_id;
+
+    if (
+        $user_id < 1 ||
+        $course_id < 1 ||
+        'course' !== get_post_type( $course_id )
+    ) {
+        return false;
+    }
+
+    $deleted = $wpdb->delete(
+        edu_platform_enrollments_table(),
+        array(
+            'user_id'   => $user_id,
+            'course_id' => $course_id,
+        ),
+        array( '%d', '%d' )
+    );
+
+    return false !== $deleted;
+}
+
+
+/**
+ * Handle an authenticated course unenrollment request.
+ */
+function edu_platform_handle_course_unenrollment() {
+
+    if ( ! is_user_logged_in() ) {
+        auth_redirect();
+    }
+
+    if (
+        ! isset( $_POST['edu_unenroll_nonce'] ) ||
+        ! wp_verify_nonce(
+            sanitize_text_field( wp_unslash( $_POST['edu_unenroll_nonce'] ) ),
+            'edu_unenroll_course'
+        )
+    ) {
+        wp_die(
+            esc_html__( 'The unenrollment request could not be verified.', 'edu-platform' ),
+            esc_html__( 'Invalid request', 'edu-platform' ),
+            array( 'response' => 403 )
+        );
+    }
+
+    $course_id = isset( $_POST['course_id'] )
+        ? absint( $_POST['course_id'] )
+        : 0;
+
+    if ( $course_id < 1 || 'course' !== get_post_type( $course_id ) ) {
+        wp_die(
+            esc_html__( 'The selected course is invalid.', 'edu-platform' ),
+            esc_html__( 'Invalid course', 'edu-platform' ),
+            array( 'response' => 400 )
+        );
+    }
+
+    $removed     = edu_platform_unenroll_user( get_current_user_id(), $course_id );
+    $redirect_to = get_permalink( $course_id );
+
+    if ( ! $redirect_to ) {
+        $redirect_to = home_url( '/' );
+    }
+
+    wp_safe_redirect(
+        add_query_arg(
+            $removed ? 'unenrolled' : 'unenrollment_error',
+            '1',
+            $redirect_to
+        )
+    );
+    exit;
+}
+
+add_action( 'admin_post_edu_platform_unenroll', 'edu_platform_handle_course_unenrollment' );
+
 
 /**
  * Handle Enroll Now POST request.

@@ -61,6 +61,18 @@ function eduplatform_enqueue_assets() {
     // Stripe Checkout scripts: course pages only.
     if ( is_singular( 'course' ) ) {
 
+        $unenrollment_js_path = get_template_directory() . '/assets/js/course-unenrollment.js';
+
+        if ( file_exists( $unenrollment_js_path ) ) {
+            wp_enqueue_script(
+                'eduplatform-course-unenrollment',
+                get_template_directory_uri() . '/assets/js/course-unenrollment.js',
+                array(),
+                (string) filemtime( $unenrollment_js_path ),
+                true
+            );
+        }
+
         wp_enqueue_script(
             'stripe-js',
             'https://js.stripe.com/v3/',

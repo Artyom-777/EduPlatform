@@ -79,7 +79,7 @@
                                 <span class="course-end-date">
                                     <strong>End Date:</strong>
                                     <?php
-                                    $date = DateTimeImmutable::createFromFormat( '!Ymd', $start_date );
+                                    $date = DateTimeImmutable::createFromFormat( '!Ymd', $end_date );
 
                                     if ( $date ) {
                                         echo esc_html( $date->format( get_option( 'date_format' ) ) );
@@ -169,9 +169,54 @@
 
                                 <?php if ( function_exists( 'edu_platform_user_is_enrolled' ) && edu_platform_user_is_enrolled( get_current_user_id(), $course_id ) ) : ?>
 
-                                    <p class="course-enrollment-status course-enrollment-status--enrolled">
-                                        <?php esc_html_e( 'You are enrolled in this course.', 'eduplatform' ); ?>
-                                    </p>
+                                    <div class="course-enrollment-actions">
+                                        <p class="course-enrollment-status course-enrollment-status--enrolled">
+                                            <?php esc_html_e( 'You are enrolled in this course.', 'eduplatform' ); ?>
+                                        </p>
+
+                                        <form
+                                            class="course-unenrollment-form"
+                                            method="post"
+                                            action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+                                            data-confirm-dialog="course-unenrollment-confirm-<?php echo esc_attr( (string) $course_id ); ?>"
+                                        >
+                                            <input type="hidden" name="action" value="edu_platform_unenroll">
+                                            <input
+                                                type="hidden"
+                                                name="course_id"
+                                                value="<?php echo esc_attr( (string) $course_id ); ?>"
+                                            >
+                                            <?php wp_nonce_field( 'edu_unenroll_course', 'edu_unenroll_nonce' ); ?>
+
+                                            <button type="submit" class="course-unenrollment-btn">
+                                                <?php esc_html_e( 'Delete', 'edu-platform' ); ?>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <dialog
+                                        id="course-unenrollment-confirm-<?php echo esc_attr( (string) $course_id ); ?>"
+                                        class="course-unenrollment-dialog"
+                                        aria-labelledby="course-unenrollment-title-<?php echo esc_attr( (string) $course_id ); ?>"
+                                    >
+                                        <h2 id="course-unenrollment-title-<?php echo esc_attr( (string) $course_id ); ?>">
+                                            <?php esc_html_e( 'Confirm unenrollment', 'eduplatform' ); ?>
+                                        </h2>
+
+                                        <p>
+                                            <?php esc_html_e( 'Are you sure you want to unenroll this user from this course?', 'eduplatform' ); ?>
+                                        </p>
+
+                                        <div class="course-unenrollment-dialog-actions">
+                                            <button type="button" class="course-unenrollment-dialog-no" data-unenroll-cancel>
+                                                <?php esc_html_e( 'No', 'eduplatform' ); ?>
+                                            </button>
+
+                                            <button type="button" class="course-unenrollment-dialog-yes" data-unenroll-confirm>
+                                                <?php esc_html_e( 'Yes', 'eduplatform' ); ?>
+                                            </button>
+                                        </div>
+                                    </dialog>
 
                                 <?php else : ?>
 
@@ -209,6 +254,18 @@
                             <?php if ( isset( $_GET['enrolled'] ) && '1' === $_GET['enrolled'] ) : ?>
                                 <p class="course-enrollment-notice" role="status">
                                     <?php esc_html_e( 'Enrollment successful.', 'eduplatform' ); ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <?php if ( isset( $_GET['unenrolled'] ) && '1' === $_GET['unenrolled'] ) : ?>
+                                <p class="course-unenrollment-notice" role="status">
+                                    <?php esc_html_e( 'The user has been successfully unenrolled from this course.', 'eduplatform' ); ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <?php if ( isset( $_GET['unenrollment_error'] ) && '1' === $_GET['unenrollment_error'] ) : ?>
+                                <p class="course-unenrollment-error" role="alert">
+                                    <?php esc_html_e( 'The enrollment could not be deleted. Please try again.', 'eduplatform' ); ?>
                                 </p>
                             <?php endif; ?>
 
