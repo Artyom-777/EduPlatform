@@ -1,0 +1,194 @@
+
+@use '../abstracts/variables' as *;
+
+.my-account-page {
+    padding: 40px 24px;
+
+    .my-account-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .my-account-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 32px;
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 30px;
+        }
+
+        p {
+            margin: 0;
+            color: #777;
+        }
+    }
+
+    .my-account-header-copy {
+        min-width: 0;
+    }
+
+    .my-account-home-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 46px;
+        flex-shrink: 0;
+        padding: 0 18px;
+        color: $surface;
+        background: linear-gradient(135deg, $primary, $primary-dark);
+        border: 1px solid rgba($primary-dark, 0.2);
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba($primary, 0.2);
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform $transition, box-shadow $transition, background $transition;
+
+        &:hover {
+            color: $surface;
+            background: $primary-dark;
+            box-shadow: 0 10px 24px rgba($primary, 0.28);
+            transform: translateY(-1px);
+        }
+    }
+
+    .my-account-home-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: rgba($surface, 0.14);
+        border-radius: 8px;
+
+        svg {
+            width: 17px;
+            height: 17px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    }
+
+    .account-section {
+        padding: 32px;
+        margin-bottom: 28px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+    }
+
+    .account-section-header {
+        margin-bottom: 24px;
+
+        h2 {
+            font-size: 21px;
+            margin-bottom: 6px;
+        }
+
+        p {
+            color: #777;
+            font-size: 14px;
+        }
+    }
+
+    .account-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+
+            &:focus {
+                border-color: #4f8b68;
+            }
+        }
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
+    }
+
+    button {
+        padding: 13px 24px;
+        color: #fff;
+        background: #3f7958;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+
+        &:hover {
+            background: #326347;
+        }
+    }
+
+    .account-notice {
+        padding: 15px 20px;
+        margin-bottom: 24px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .account-notice-success {
+        color: #24613b;
+        background: #e8f5ec;
+        border: 1px solid #c6e6d0;
+    }
+}
+
+@media (max-width: 768px) {
+    .my-account-page {
+        padding: 24px 16px;
+
+        .my-account-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .my-account-home-link {
+            width: 100%;
+        }
+
+        .account-section {
+            padding: 22px 18px;
+        }
+
+        .account-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .full-width {
+            grid-column: auto;
+        }
+
+        button {
+            width: 100%;
+        }
+    }
+}

@@ -1480,3 +1480,129 @@ function eduplatform_dashboard_achievements( $stats ) {
         'items'  => $items,
     );
 }
+
+/**
+ * EduPlatform: Handle My Account profile updates.
+ */
+function eduplatform_handle_account_profile_update() {
+
+    if ( ! is_user_logged_in() || ! isset( $_POST['eduplatform_update_profile'] ) ) {
+        return;
+    }
+
+    if (
+        ! isset( $_POST['eduplatform_profile_nonce'] ) ||
+        ! wp_verify_nonce(
+            sanitize_text_field( wp_unslash( $_POST['eduplatform_profile_nonce'] ) ),
+            'eduplatform_update_profile'
+        )
+    ) {
+        wp_die( 'Security verification failed.' );
+    }
+
+    $user_id = get_current_user_id();
+
+    $first_name = isset( $_POST['first_name'] )
+        ? sanitize_text_field( wp_unslash( $_POST['first_name'] ) )
+        : '';
+
+    $last_name = isset( $_POST['last_name'] )
+        ? sanitize_text_field( wp_unslash( $_POST['last_name'] ) )
+        : '';
+
+    $email = isset( $_POST['account_email'] )
+        ? sanitize_email( wp_unslash( $_POST['account_email'] ) )
+        : '';
+
+    if ( ! is_email( $email ) ) {
+        wp_die( 'Please enter a valid email address.' );
+    }
+
+    $result = wp_update_user( array(
+        'ID'         => $user_id,
+        'first_name' => $first_name,
+        'last_name'  => $last_name,
+        'user_email' => $email,
+    ) );
+
+    if ( is_wp_error( $result ) ) {
+        wp_die( esc_html( $result->get_error_message() ) );
+    }
+
+    $redirect_url = add_query_arg(
+        'account_notice',
+        'profile_updated',
+        wp_get_referer() ?: home_url( '/my-account/' )
+    );
+
+    wp_safe_redirect( $redirect_url );
+    exit;
+}
+add_action( 'template_redirect', 'eduplatform_handle_account_profile_update' );
+
+
+/**
+ * EduPlatform: Handle account password changes.
+ */
+function eduplatform_handle_account_password_change() {
+
+    if ( ! is_user_logged_in() || ! isset( $_POST['eduplatform_change_password'] ) ) {
+        return;
+    }
+
+    if (
+        ! isset( $_POST['eduplatform_password_nonce'] ) ||
+        ! wp_verify_nonce(
+            sanitize_text_field( wp_unslash( $_POST['eduplatform_password_nonce'] ) ),
+            'eduplatform_change_password'
+        )
+    ) {
+        wp_die( 'Security verification failed.' );
+    }
+
+    $user = wp_get_current_user();
+
+    $current_password = isset( $_POST['current_password'] )
+        ? (string) wp_unslash( $_POST['current_password'] )
+        : '';
+
+    $new_password = isset( $_POST['new_password'] )
+        ? (string) wp_unslash( $_POST['new_password'] )
+        : '';
+
+    $confirm_password = isset( $_POST['confirm_password'] )
+        ? (string) wp_unslash( $_POST['confirm_password'] )
+        : '';
+
+    if ( ! wp_check_password( $current_password, $user->user_pass, $user->ID ) ) {
+        wp_die( 'Your current password is incorrect.' );
+    }
+
+    if ( strlen( $new_password ) < 6 ) {
+        wp_die( 'Your new password must contain at least 6 characters.' );
+    }
+
+    if ( $new_password !== $confirm_password ) {
+        wp_die( 'The new passwords do not match.' );
+    }
+
+    if ( $current_password === $new_password ) {
+        wp_die( 'Your new password must be different from your current password.' );
+    }
+
+    wp_set_password( $new_password, $user->ID );
+
+    // Keep the current user logged in after changing the password.
+    wp_set_auth_cookie( $user->ID, true );
+
+    $redirect_url = add_query_arg(
+        'account_notice',
+        'password_updated',
+        wp_get_referer() ?: home_url( '/my-account/' )
+    );
+
+    wp_safe_redirect( $redirect_url );
+    exit;
+}
+add_action( 'template_redirect', 'eduplatform_handle_account_password_change' );
+
