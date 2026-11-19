@@ -88,8 +88,8 @@ function edu_platform_create_payment_table() {
         UNIQUE KEY stripe_payment_intent_id (stripe_payment_intent_id),
         KEY user_id (user_id),
         KEY course_id (course_id),
-        KEY status (status)
-        KEY woo_order_id (woo_order_id),
+        KEY status (status),
+        KEY woo_order_id (woo_order_id)
     ) $charset_collate;";
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';

@@ -87,20 +87,42 @@ function edu_platform_enroll_user( $user_id, $course_id ) {
     }
 
     $table = edu_platform_enrollments_table();
-    $now   = current_time( 'mysql' );
+    $now = current_time('mysql');
 
     $inserted = $wpdb->insert(
         $table,
-        array(
+        [
             'user_id'     => $user_id,
             'course_id'   => $course_id,
             'status'      => 'active',
             'enrolled_at' => $now,
-        ),
-        array( '%d', '%d', '%s', '%s' )
+        ],
+        [ '%d', '%d', '%s', '%s' ]
     );
-
-    return false !== $inserted;
+    
+    if ( false === $inserted ) {
+        return false;
+    }
+    
+    $enrollment_id = (int) $wpdb->insert_id;
+    
+    $course_title = get_the_title( $course_id );
+    
+    $event_uuid = wp_generate_uuid4();
+    
+    do_action(
+        'edu_platform_enrollment_confirmed',
+        [
+            'event_uuid'    => $event_uuid,
+            'enrollment_id' => $enrollment_id,
+            'user_id'       => $user_id,
+            'course_id'     => $course_id,
+            'course_title'  => $course_title,
+            'occurred_at'   => $now,
+        ]
+    );
+    
+    return true;
 }
 
 /**
@@ -249,6 +271,21 @@ function edu_platform_handle_course_enrollment() {
         return;
     }
 
+    // Check if the course has a price and if it is greater than 0
+    $price = get_post_meta( $course_id, '_course_price', true );
+
+    if ( ! is_numeric( $price ) || (float) $price !== 0.0 ) {
+        wp_safe_redirect(
+            add_query_arg(
+                'enrollment_error',
+                'payment_required',
+                get_permalink( $course_id )
+            )
+        );
+    
+        exit;
+    }
+    
     $enrolled = edu_platform_enroll_user(
         get_current_user_id(),
         $course_id
