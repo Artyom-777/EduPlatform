@@ -132,7 +132,8 @@ function edu_platform_enroll_user( $user_id, $course_id ) {
  * @param int $course_id
  * @return bool
  */
-function edu_platform_unenroll_user( $user_id, $course_id ) {
+
+ function edu_platform_unenroll_user( $user_id, $course_id ) {
 
     global $wpdb;
 
@@ -147,17 +148,57 @@ function edu_platform_unenroll_user( $user_id, $course_id ) {
         return false;
     }
 
-    $deleted = $wpdb->delete(
-        edu_platform_enrollments_table(),
-        array(
-            'user_id'   => $user_id,
-            'course_id' => $course_id,
+    $table = edu_platform_enrollments_table();
+
+    // Retrieve the existing enrollment before deleting it.
+    $enrollment = $wpdb->get_row(
+        $wpdb->prepare(
+            "SELECT id FROM {$table} WHERE user_id = %d AND course_id = %d",
+            $user_id,
+            $course_id
         ),
-        array( '%d', '%d' )
+        ARRAY_A
     );
 
-    return false !== $deleted;
+    if ( ! $enrollment ) {
+        return false;
+    }
+
+    $enrollment_id = (int) $enrollment['id'];
+
+    $course_title = get_the_title( $course_id );
+
+    $occurred_at = current_time( 'mysql' );
+
+    // Delete the enrollment.
+    $deleted = $wpdb->delete(
+        $table,
+        [
+            'id' => $enrollment_id,
+        ],
+        [ '%d' ]
+    );
+
+    if ( 1 !== $deleted ) {
+        return false;
+    }
+
+    // Notify analytics after successful deletion.
+    do_action(
+        'edu_platform_enrollment_unenrolled',
+        [
+            'event_uuid'    => wp_generate_uuid4(),
+            'enrollment_id' => $enrollment_id,
+            'user_id'       => $user_id,
+            'course_id'     => $course_id,
+            'course_title'  => $course_title,
+            'occurred_at'   => $occurred_at,
+        ]
+    );
+
+    return true;
 }
+
 
 
 /**
