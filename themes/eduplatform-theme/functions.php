@@ -4,6 +4,15 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+$eduplatform_core_bootstrap = get_template_directory() . '/includes/edu-platform-core/edu-platform-core.php';
+
+if (
+    ! defined( 'EDU_PLATFORM_CORE_VERSION' ) &&
+    file_exists( $eduplatform_core_bootstrap )
+) {
+    require_once $eduplatform_core_bootstrap;
+}
+
 function eduplatform_theme_setup() {
 
     add_theme_support( 'title-tag' );
