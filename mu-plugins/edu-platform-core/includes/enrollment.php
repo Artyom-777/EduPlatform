@@ -1,10 +1,6 @@
 <?php
 /**
- * Check whether a user is enrolled in a course.
- *
- * @param int $user_id
- * @param int $course_id
- * @return bool
+ * Check whether a user is currently enrolled.
  */
 function edu_platform_user_is_enrolled( $user_id, $course_id ) {
 
@@ -19,23 +15,24 @@ function edu_platform_user_is_enrolled( $user_id, $course_id ) {
 
     $table = edu_platform_enrollments_table();
 
-    $found = $wpdb->get_var(
+    $latest_event = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT id FROM {$table} WHERE user_id = %d AND course_id = %d AND status = 'active' LIMIT 1",
+            "SELECT event_type
+            FROM {$table}
+            WHERE user_id = %d AND course_id = %d
+            ORDER BY id DESC
+            LIMIT 1",
             $user_id,
             $course_id
         )
     );
 
-    return ! empty( $found );
+    return 'enrolled' === $latest_event;
 }
 
 
 /**
- * Get course IDs the user is enrolled in.
- *
- * @param int $user_id
- * @return int[]
+ * Get currently enrolled course IDs.
  */
 function edu_platform_get_user_enrolled_course_ids( $user_id = 0 ) {
 
@@ -51,7 +48,16 @@ function edu_platform_get_user_enrolled_course_ids( $user_id = 0 ) {
 
     $ids = $wpdb->get_col(
         $wpdb->prepare(
-            "SELECT course_id FROM {$table} WHERE user_id = %d AND status = 'active' ORDER BY enrolled_at DESC",
+            "SELECT e.course_id
+            FROM {$table} e
+            INNER JOIN (
+                SELECT course_id, MAX(id) AS latest_id
+                FROM {$table}
+                WHERE user_id = %d
+                GROUP BY course_id
+            ) latest ON e.id = latest.latest_id
+            WHERE e.event_type = 'enrolled'
+            ORDER BY e.occurred_at DESC",
             $user_id
         )
     );
@@ -61,11 +67,7 @@ function edu_platform_get_user_enrolled_course_ids( $user_id = 0 ) {
 
 
 /**
- * Enroll a user in a course.
- *
- * @param int $user_id
- * @param int $course_id
- * @return bool
+ * Enroll a user by inserting a new history event.
  */
 function edu_platform_enroll_user( $user_id, $course_id ) {
 
@@ -87,53 +89,47 @@ function edu_platform_enroll_user( $user_id, $course_id ) {
     }
 
     $table = edu_platform_enrollments_table();
-    $now = current_time('mysql');
+    $now   = current_time( 'mysql' );
+    $uuid  = wp_generate_uuid4();
 
     $inserted = $wpdb->insert(
         $table,
         [
-            'user_id'     => $user_id,
-            'course_id'   => $course_id,
-            'status'      => 'active',
-            'enrolled_at' => $now,
+            'event_uuid' => $uuid,
+            'user_id'    => $user_id,
+            'course_id'  => $course_id,
+            'event_type' => 'enrolled',
+            'occurred_at' => $now,
         ],
-        [ '%d', '%d', '%s', '%s' ]
+        [ '%s', '%d', '%d', '%s', '%s' ]
     );
-    
+
     if ( false === $inserted ) {
         return false;
     }
-    
-    $enrollment_id = (int) $wpdb->insert_id;
-    
-    $course_title = get_the_title( $course_id );
-    
-    $event_uuid = wp_generate_uuid4();
-    
+
+    $event_id = (int) $wpdb->insert_id;
+
     do_action(
         'edu_platform_enrollment_confirmed',
         [
-            'event_uuid'    => $event_uuid,
-            'enrollment_id' => $enrollment_id,
+            'event_uuid'    => $uuid,
+            'enrollment_id' => $event_id,
             'user_id'       => $user_id,
             'course_id'     => $course_id,
-            'course_title'  => $course_title,
+            'course_title'  => get_the_title( $course_id ),
             'occurred_at'   => $now,
         ]
     );
-    
+
     return true;
 }
 
-/**
- * Remove a user's enrollment record for a course.
- *
- * @param int $user_id
- * @param int $course_id
- * @return bool
- */
 
- function edu_platform_unenroll_user( $user_id, $course_id ) {
+/**
+ * Unenroll a user by inserting a new history event.
+ */
+function edu_platform_unenroll_user( $user_id, $course_id ) {
 
     global $wpdb;
 
@@ -148,56 +144,47 @@ function edu_platform_enroll_user( $user_id, $course_id ) {
         return false;
     }
 
-    $table = edu_platform_enrollments_table();
-
-    // Retrieve the existing enrollment before deleting it.
-    $enrollment = $wpdb->get_row(
-        $wpdb->prepare(
-            "SELECT id FROM {$table} WHERE user_id = %d AND course_id = %d",
-            $user_id,
-            $course_id
-        ),
-        ARRAY_A
-    );
-
-    if ( ! $enrollment ) {
+    if ( ! edu_platform_user_is_enrolled( $user_id, $course_id ) ) {
         return false;
     }
 
-    $enrollment_id = (int) $enrollment['id'];
+    $table = edu_platform_enrollments_table();
+    $now   = current_time( 'mysql' );
+    $uuid  = wp_generate_uuid4();
 
-    $course_title = get_the_title( $course_id );
-
-    $occurred_at = current_time( 'mysql' );
-
-    // Delete the enrollment.
-    $deleted = $wpdb->delete(
+    $inserted = $wpdb->insert(
         $table,
         [
-            'id' => $enrollment_id,
+            'event_uuid' => $uuid,
+            'user_id'    => $user_id,
+            'course_id'  => $course_id,
+            'event_type' => 'unenrolled',
+            'occurred_at' => $now,
         ],
-        [ '%d' ]
+        [ '%s', '%d', '%d', '%s', '%s' ]
     );
 
-    if ( 1 !== $deleted ) {
+    if ( false === $inserted ) {
         return false;
     }
 
-    // Notify analytics after successful deletion.
+    $event_id = (int) $wpdb->insert_id;
+
     do_action(
         'edu_platform_enrollment_unenrolled',
         [
-            'event_uuid'    => wp_generate_uuid4(),
-            'enrollment_id' => $enrollment_id,
+            'event_uuid'    => $uuid,
+            'enrollment_id' => $event_id,
             'user_id'       => $user_id,
             'course_id'     => $course_id,
-            'course_title'  => $course_title,
-            'occurred_at'   => $occurred_at,
+            'course_title'  => get_the_title( $course_id ),
+            'occurred_at'   => $now,
         ]
     );
 
     return true;
 }
+
 
 
 
