@@ -19,6 +19,11 @@ require_once EDU_ANALYTICS_PATH . 'includes/class-database.php';
 require_once EDU_ANALYTICS_PATH . 'includes/class-event-listener.php';
 require_once EDU_ANALYTICS_PATH . 'includes/class-analytics.php';
 
+add_action(
+    'plugins_loaded',
+    [ 'Edu_Analytics_Database', 'maybe_upgrade' ]
+);
+
 register_activation_hook(
     __FILE__,
     [ 'Edu_Analytics_Database', 'create_table' ]

@@ -33,65 +33,56 @@ class Edu_Analytics {
         );
     }
 
-    /**
-     * Get enrollment statistics directly from database.
-     *
-     * @return array
-     */
-    public static function get_statistics() {
+/**
+ * Get enrollment statistics directly from EduPlatform Core.
+ *
+ * @return array
+ */
+public static function get_statistics() {
 
-        global $wpdb;
+    global $wpdb;
 
-        $table_name = $wpdb->prefix . 'edu_analytics_events';
+    $table_name = $wpdb->prefix . 'edu_enrollments';
 
-        $total_confirmed = (int) $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*)
-                FROM {$table_name}
-                WHERE event_type = %s",
-                'enrollment_confirmed'
-            )
-        );
+    $total_confirmed = (int) $wpdb->get_var(
+        "SELECT COUNT(*)
+        FROM {$table_name}
+        WHERE event_type = 'enrolled'"
+    );
 
-        $total_unenrolled = (int) $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*)
-                FROM {$table_name}
-                WHERE event_type = %s",
-                'enrollment_unenrolled'
-            )
-        );
+    $total_unenrolled = (int) $wpdb->get_var(
+        "SELECT COUNT(*)
+        FROM {$table_name}
+        WHERE event_type = 'unenrolled'"
+    );
 
-        $active_enrollments = (int) $wpdb->get_var(
-            "SELECT COUNT(*)
-            FROM {$table_name} AS confirmed
-            WHERE confirmed.event_type = 'enrollment_confirmed'
-            AND NOT EXISTS (
-                SELECT 1
-                FROM {$table_name} AS unenrolled
-                WHERE unenrolled.enrollment_id = confirmed.enrollment_id
-                AND unenrolled.event_type = 'enrollment_unenrolled'
-            )"
-        );
+    $active_enrollments = (int) $wpdb->get_var(
+        "SELECT COUNT(*)
+        FROM {$table_name} AS current_event
+        INNER JOIN (
+            SELECT user_id, course_id, MAX(id) AS latest_id
+            FROM {$table_name}
+            GROUP BY user_id, course_id
+        ) AS latest
+        ON current_event.id = latest.latest_id
+        WHERE current_event.event_type = 'enrolled'"
+    );
 
-        $unique_students = (int) $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(DISTINCT user_id)
-                FROM {$table_name}
-                WHERE event_type = %s",
-                'enrollment_confirmed'
-            )
-        );
+    $unique_students = (int) $wpdb->get_var(
+        "SELECT COUNT(DISTINCT user_id)
+        FROM {$table_name}
+        WHERE event_type = 'enrolled'"
+    );
 
-        return [
-            'total_confirmed'    => $total_confirmed,
-            'total_unenrolled'   => $total_unenrolled,
-            'active_enrollments' => $active_enrollments,
-            'unique_students'    => $unique_students,
-        ];
-    }
+    return [
+        'total_confirmed'    => $total_confirmed,
+        'total_unenrolled'   => $total_unenrolled,
+        'active_enrollments' => $active_enrollments,
+        'unique_students'    => $unique_students,
+    ];
+}
 
-     
+
 /**
  * Get enrollment statistics grouped by course.
  *
@@ -101,45 +92,62 @@ public static function get_course_statistics() {
 
     global $wpdb;
 
-    $table_name = $wpdb->prefix . 'edu_analytics_events';
+    $table_name = $wpdb->prefix . 'edu_enrollments';
+    $posts_table = $wpdb->posts;
 
     $sql = "
         SELECT
-            confirmed.course_id,
-            confirmed.course_title,
-            COUNT(*) AS total_confirmed,
+            events.course_id,
+            COALESCE(
+                NULLIF(posts.post_title, ''),
+                CONCAT('Deleted course #', events.course_id)
+            ) AS course_title,
 
             SUM(
                 CASE
-                    WHEN EXISTS (
-                        SELECT 1
-                        FROM {$table_name} AS unenrolled
-                        WHERE unenrolled.enrollment_id = confirmed.enrollment_id
-                        AND unenrolled.event_type = 'enrollment_unenrolled'
-                    )
-                    THEN 1
-                    ELSE 0
+                    WHEN events.event_type = 'enrolled'
+                    THEN 1 ELSE 0
+                END
+            ) AS total_confirmed,
+
+            SUM(
+                CASE
+                    WHEN events.event_type = 'unenrolled'
+                    THEN 1 ELSE 0
                 END
             ) AS total_unenrolled,
 
             SUM(
                 CASE
-                    WHEN NOT EXISTS (
-                        SELECT 1
-                        FROM {$table_name} AS unenrolled
-                        WHERE unenrolled.enrollment_id = confirmed.enrollment_id
-                        AND unenrolled.event_type = 'enrollment_unenrolled'
-                    )
-                    THEN 1
-                    ELSE 0
+                    WHEN latest.event_type = 'enrolled'
+                    THEN 1 ELSE 0
                 END
             ) AS active_enrollments
 
-        FROM {$table_name} AS confirmed
+        FROM {$table_name} AS events
 
-        WHERE confirmed.event_type = 'enrollment_confirmed'
+        LEFT JOIN {$posts_table} AS posts
+            ON posts.ID = events.course_id
+            AND posts.post_type = 'course'
 
-        GROUP BY confirmed.course_id, confirmed.course_title
+        LEFT JOIN (
+            SELECT current_event.user_id,
+                   current_event.course_id,
+                   current_event.event_type
+            FROM {$table_name} AS current_event
+            INNER JOIN (
+                SELECT user_id, course_id, MAX(id) AS latest_id
+                FROM {$table_name}
+                GROUP BY user_id, course_id
+            ) AS latest_event
+                ON current_event.id = latest_event.latest_id
+        ) AS latest
+            ON latest.user_id = events.user_id
+            AND latest.course_id = events.course_id
+            AND latest.event_type = 'enrolled'
+            AND events.event_type = 'enrolled'
+
+        GROUP BY events.course_id, posts.post_title
 
         ORDER BY total_confirmed DESC
     ";
