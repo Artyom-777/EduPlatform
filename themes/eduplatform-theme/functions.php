@@ -41,80 +41,32 @@ add_action( 'after_setup_theme', 'eduplatform_theme_setup' );
 
 function eduplatform_enqueue_assets() {
 
-    // Main compiled CSS.
-    $main_css_path = get_template_directory() . '/assets/css/main.css';
-    $main_css_ver  = file_exists( $main_css_path )
-        ? (string) filemtime( $main_css_path )
-        : false;
+    $manifest_path = get_template_directory() . '/dist/.vite/manifest.json';
 
-    wp_enqueue_style(
-        'eduplatform-main',
-        get_template_directory_uri() . '/assets/css/main.css',
-        array(),
-        $main_css_ver
+    if ( ! file_exists( $manifest_path ) ) {
+        return;
+    }
+
+    $manifest = json_decode(
+        file_get_contents( $manifest_path ),
+        true
     );
 
-    // Dashboard user menu JavaScript.
-    $dash_js_path = get_template_directory() . '/assets/js/dashboard-user-menu.js';
-
-    if ( file_exists( $dash_js_path ) ) {
-        wp_enqueue_script(
-            'eduplatform-dashboard-user-menu',
-            get_template_directory_uri() . '/assets/js/dashboard-user-menu.js',
-            array(),
-            (string) filemtime( $dash_js_path ),
-            true
-        );
+    if ( ! isset( $manifest['src/main.js']['css'] ) ) {
+        return;
     }
 
-    // Stripe Checkout scripts: course pages only.
-    if ( is_singular( 'course' ) ) {
+    foreach ( $manifest['src/main.js']['css'] as $index => $css_file ) {
 
-        $unenrollment_js_path = get_template_directory() . '/assets/js/course-unenrollment.js';
-
-        if ( file_exists( $unenrollment_js_path ) ) {
-            wp_enqueue_script(
-                'eduplatform-course-unenrollment',
-                get_template_directory_uri() . '/assets/js/course-unenrollment.js',
-                array(),
-                (string) filemtime( $unenrollment_js_path ),
-                true
-            );
-        }
-
-        wp_enqueue_script(
-            'stripe-js',
-            'https://js.stripe.com/v3/',
+        wp_enqueue_style(
+            'eduplatform-main-' . $index,
+            get_template_directory_uri() . '/dist/' . $css_file,
             array(),
-            null,
-            true
+            null
         );
-
-        $checkout_js_path = get_template_directory() . '/assets/js/course-checkout.js';
-
-        if ( file_exists( $checkout_js_path ) ) {
-            wp_enqueue_script(
-                'eduplatform-course-checkout',
-                get_template_directory_uri() . '/assets/js/course-checkout.js',
-                array( 'stripe-js' ),
-                (string) filemtime( $checkout_js_path ),
-                true
-            );
-
-            wp_localize_script(
-                'eduplatform-course-checkout',
-                'eduPlatformCheckout',
-                array(
-                    'restUrl'       => esc_url_raw( rest_url( 'edu-platform/v1/' ) ),
-                    'nonce'         => wp_create_nonce( 'wp_rest' ),
-                    'publishableKey' => defined( 'EDU_PLATFORM_STRIPE_PUBLISHABLE_KEY' )
-                        ? EDU_PLATFORM_STRIPE_PUBLISHABLE_KEY
-                        : '',
-                )
-            );
-        }
     }
 }
+add_action( 'wp_enqueue_scripts', 'eduplatform_enqueue_assets' );
 
 
 /**
@@ -398,11 +350,6 @@ function eduplatform_handle_register_post() {
 }
 
 add_action( 'template_redirect', 'eduplatform_handle_register_post', 0 );
-
-add_action(
-    'wp_enqueue_scripts',
-    'eduplatform_enqueue_assets'
-);
 
 function eduplatform_primary_menu_fallback() {
     $courses_url = get_post_type_archive_link( 'course' );
