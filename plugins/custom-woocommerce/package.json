@@ -1,0 +1,18 @@
+{
+  "name": "custom-woocommerce",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+      "build:css": "sass --no-source-map --style=expanded assets/scss/admin.scss assets/css/admin.css && sass --no-source-map --style=expanded assets/scss/frontend.scss assets/css/frontend.css",
+      "watch:css": "sass --watch --no-source-map assets/scss/admin.scss:assets/css/admin.css assets/scss/frontend.scss:assets/css/frontend.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "sass": "^1.108.2"
+  }
+}
+

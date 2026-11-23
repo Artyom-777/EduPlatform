@@ -1,0 +1,17 @@
+.cwc-product {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 16px;
+
+    &__title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    &__price {
+        font-size: 20px;
+        font-weight: 700;
+        color: #7f54b3;
+    }
+}

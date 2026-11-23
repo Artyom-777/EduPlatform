@@ -1,0 +1,24 @@
+@use '../abstracts/mixins' as mixins;
+.cwc-store {
+    font-family: Arial, sans-serif;
+
+    .cwc-shop-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 24px;
+    }
+
+    .cwc-product-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+
+        @include mixins.responsive(tablet) {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        @include mixins.responsive(mobile) {
+            grid-template-columns: 1fr;
+        }
+    }
+}

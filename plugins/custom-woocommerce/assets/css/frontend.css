@@ -1,0 +1,64 @@
+.cwc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #7f54b3;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.cwc-button:hover {
+  background: rgb(41.9811066127%, 26.8114630468%, 60.3257918552%);
+}
+.cwc-button--secondary {
+  background: #6c757d;
+}
+.cwc-button--danger {
+  background: #dc3545;
+}
+
+.cwc-store {
+  font-family: Arial, sans-serif;
+}
+.cwc-store .cwc-shop-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+.cwc-store .cwc-product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+@media (max-width: 768px) {
+  .cwc-store .cwc-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .cwc-store .cwc-product-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cwc-product {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 16px;
+}
+.cwc-product__title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.cwc-product__price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #7f54b3;
+}
