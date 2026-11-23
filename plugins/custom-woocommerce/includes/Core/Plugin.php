@@ -70,20 +70,4 @@ class Plugin
             dirname(CWC_PLUGIN_BASENAME) . '/languages'
         );
     }
-
-    /**
-     * Plugin activation.
-     */
-    public function activate(): void
-    {
-        // Activation logic will be implemented later.
-    }
-
-    /**
-     * Plugin deactivation.
-     */
-    public function deactivate(): void
-    {
-        // Deactivation logic will be implemented later.
-    }
 }

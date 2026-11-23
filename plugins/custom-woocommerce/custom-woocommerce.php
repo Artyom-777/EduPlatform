@@ -41,7 +41,6 @@ $plugin = new Core\Plugin();
 /**
  * Initialize plugin.
  */
-$plugin = new Core\Plugin();
 
 register_activation_hook(
     CWC_PLUGIN_FILE,

@@ -2,7 +2,7 @@
 
 namespace CustomWooCommerce\Core;
 
-use CustomWooCommerce\Database\Installer;
+use CustomWooCommerce\Database\Upgrader;
 
 defined('ABSPATH') || exit;
 
@@ -14,11 +14,8 @@ class Activator
     public static function activate(): void
     {
         self::check_requirements();
-
-        Installer::install();
-
+        Upgrader::maybe_upgrade();
         self::create_default_options();
-
         flush_rewrite_rules();
     }
 
