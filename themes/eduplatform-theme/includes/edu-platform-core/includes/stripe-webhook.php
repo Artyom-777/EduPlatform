@@ -197,27 +197,6 @@ function edu_platform_handle_stripe_webhook( WP_REST_Request $request ) {
             throw new \RuntimeException( 'Payment update failed.' );
         }
 
-        // Update WooCommerce order.
-        if ( ! function_exists( 'wc_get_order' ) ) {
-            throw new \RuntimeException( 'WooCommerce is unavailable.' );
-        }
-
-        $order = wc_get_order( absint( $payment->woo_order_id ) );
-
-        if ( ! $order ) {
-            throw new \RuntimeException( 'WooCommerce order not found.' );
-        }
-
-        if (
-            (int) $order->get_meta( '_edu_platform_payment_id' ) !== $payment_id
-        ) {
-            throw new \RuntimeException( 'WooCommerce order verification failed.' );
-        }
-
-        if ( ! $order->is_paid() ) {
-            $order->payment_complete( $payment_intent_id );
-        }
-
         $wpdb->query( 'COMMIT' );
 
         return new WP_REST_Response(

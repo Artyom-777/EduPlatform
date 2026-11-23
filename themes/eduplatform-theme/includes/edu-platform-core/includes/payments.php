@@ -5,72 +5,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Create WooCommerce order for EduPlatform course payment.
- */
-function edu_platform_create_woocommerce_order(
-    $payment_id,
-    $user_id,
-    $course_id,
-    $amount
-) {
-
-    if ( ! function_exists( 'wc_create_order' ) ) {
-        return new WP_Error(
-            'woocommerce_unavailable',
-            'WooCommerce is not available.'
-        );
-    }
-
-    $user = get_userdata( $user_id );
-
-    if ( ! $user ) {
-        return new WP_Error(
-            'invalid_user',
-            'User not found.'
-        );
-    }
-
-    $order = wc_create_order(
-        array(
-            'customer_id' => $user_id,
-            'status'      => 'pending',
-        )
-    );
-
-    if ( is_wp_error( $order ) ) {
-        return $order;
-    }
-
-    $item = new WC_Order_Item_Fee();
-
-    $item->set_name( get_the_title( $course_id ) );
-    $item->set_amount( $amount / 100 );
-    $item->set_total( $amount / 100 );
-
-    $order->add_item( $item );
-
-    $order->set_currency( 'USD' );
-    $order->set_billing_email( $user->user_email );
-    $order->set_created_via( 'edu-platform' );
-
-    $order->update_meta_data(
-        '_edu_platform_payment_id',
-        $payment_id
-    );
-
-    $order->update_meta_data(
-        '_edu_platform_course_id',
-        $course_id
-    );
-
-    $order->calculate_totals( false );
-
-    $order->save();
-
-    return $order;
-}
-
-/**
  * Register Stripe Checkout REST API endpoint.
  */
 function edu_platform_register_payment_routes() {
@@ -193,33 +127,6 @@ function edu_platform_create_checkout_session( WP_REST_Request $request ) {
         'payment_id' => (string) $payment_id,
         'user_id'    => (string) $user_id,
         'course_id'  => (string) $course_id,
-    );
-
-    // Create WooCommerce order.
-    $woo_order = edu_platform_create_woocommerce_order(
-        $payment_id,
-        $user_id,
-        $course_id,
-        $amount
-    );
-
-    if ( is_wp_error( $woo_order ) ) {
-        throw new \RuntimeException(
-            $woo_order->get_error_message()
-        );
-    }
-
-    // Save WooCommerce order ID.
-    $wpdb->update(
-        $payments_table,
-        array(
-            'woo_order_id' => $woo_order->get_id(),
-        ),
-        array(
-            'id' => $payment_id,
-        ),
-        array( '%d' ),
-        array( '%d' )
     );
 
     $stripe = new \Stripe\StripeClient(
