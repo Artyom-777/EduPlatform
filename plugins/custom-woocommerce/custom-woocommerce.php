@@ -17,7 +17,7 @@ defined('ABSPATH') || exit;
  * Plugin constants.
  */
 define('CWC_VERSION', '1.0.0');
-define('CWC_DB_VERSION', '1.0.0');
+define('CWC_DB_VERSION', '1.1.0');
 
 define('CWC_PLUGIN_FILE', __FILE__);
 

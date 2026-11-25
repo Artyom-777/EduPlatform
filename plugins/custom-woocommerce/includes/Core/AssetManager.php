@@ -9,10 +9,19 @@ class AssetManager
     /**
      * Enqueue admin assets.
      */
+   /**
+     * Enqueue admin assets.
+     */
     public function enqueue_admin_assets(string $hook_suffix): void
     {
-        // Load assets only on Custom WooCommerce admin pages.
-        if (!str_contains($hook_suffix, 'cwc-')) {
+        $screen = get_current_screen();
+
+        // Load assets on Custom WooCommerce pages
+        // and product editing screens.
+        if (
+            !str_contains($hook_suffix, 'cwc-') &&
+            (!$screen || $screen->post_type !== 'cwc_product')
+        ) {
             return;
         }
 
@@ -23,7 +32,7 @@ class AssetManager
             CWC_VERSION
         );
 
-        wp_enqueue_script(
+        wp_enqueue_script(      
             'cwc-admin',
             CWC_PLUGIN_URL . 'assets/js/admin.js',
             [],
